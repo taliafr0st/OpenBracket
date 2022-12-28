@@ -3,7 +3,7 @@ CREATE DATABASE OpenBracket;
 CREATE TABLE Participants (
     ID int NOT NULL AUTO_INCREMENT,
     CONSTRAINT PK_Participants PRIMARY KEY (ID)
-)
+);
 
 CREATE TABLE Individuals (
     ParticipantID int NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE Individuals (
     2FA varchar(15),
     CONSTRAINT PK_Individuals PRIMARY KEY (ParticipantID),
     CONSTRAINT FK_Individuals FOREIGN KEY ParticipantID REFERENCES Participants(ID)
-)
+);
 
 CREATE TABLE Teams (
     ParticipantID int NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE Teams (
     CONSTRAINT PK_Teams PRIMARY KEY (ParticipantID),
     CONSTRAINT FK_Teams FOREIGN KEY ParticipantID REFERENCES Participants(ID),
     CONSTRAINT FK_TeamOwner FOREIGN KEY OwnerID REFERENCES Individuals(ParticipantID)
-)
+);
 
 CREATE TABLE Events (
     ID int NOT NULL AUTO_INCREMENT,
