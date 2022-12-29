@@ -27,10 +27,14 @@ CREATE TABLE Teams (
     CONSTRAINT FK_TeamOwner FOREIGN KEY OwnerID REFERENCES Individuals(ParticipantID)
 );
 
-CREATE TABLE Events (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    CONSTRAINT PK_Events PRIMARY KEY (ID)
+CREATE TABLE Organisers (
+    ID int NOT NULL,
+    Name varchar(63) NOT NULL,
+    Discord varchar(63),
+    Twitter varchar(63),
+    OwnerID int NOT NULL,
+    CONSTRAINT PK_Orgs PRIMARY KEY (ID),
+    CONSTRAINT FK_OrgOwner FOREIGN KEY OwnerID REFERENCES Individuals(ParticipantID)
 );
 
 CREATE TABLE Games (
@@ -57,28 +61,20 @@ CREATE TABLE Maps (
     CONSTRAINT FK_MapGame FOREIGN KEY GameID REFERENCES Games(ID)
 );
 
-CREATE TABLE StageFormats (
+CREATE TABLE Events (
     ID int NOT NULL AUTO_INCREMENT,
+    OrgID int NOT NULL,
     Name varchar(255),
-    PairingFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_StageFormats PRIMARY KEY (ID)
+    CONSTRAINT PK_Events PRIMARY KEY (ID),
+    CONSTRAINT FK_EventOrganiser FOREIGN KEY Org ID REFERENCES Organisers(ID)
 );
 
-CREATE TABLE MatchFormats (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    SetCreationFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
-);
-
-CREATE TABLE SetFormats (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    GameCreationFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
+CREATE TABLE EventAdmins (
+    EventID int NOT NULL,
+    AdminID int NOT NULL,
+    CONSTRAINT PK_Admins PRIMARY KEY (EventID, AdminID),
+    CONSTRAINT FK_AdminEvent FOREIGN KEY EventID REFERENCES Events(ID),
+    CONSTRAINT FK_AdminPerson FOREIGN KEY AdminID REFERENCES Individuals(ParticipantID)
 );
 
 CREATE TABLE Tournaments (
@@ -90,12 +86,22 @@ CREATE TABLE Tournaments (
     CONSTRAINT FK_TournamentGame FOREIGN KEY GameID REFERENCES Games(ID)
 );
 
+CREATE TABLE StageFormats (
+    ID int NOT NULL AUTO_INCREMENT,
+    Name varchar(255),
+    PairingFxn varchar(255),
+    ScoringFxn varchar(255),
+    CONSTRAINT PK_StageFormats PRIMARY KEY (ID)
+);
+
 CREATE TABLE Stages (
     EventID int NOT NULL,
+    TournamentID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL
     CONSTRAINT PK_Stages PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_StageEvent FOREIGN KEY EventID REFERENCES Events(ID),
+    CONSTRAINT FK_StageTournament FOREIGN KEY TournamentID REFERENCES Tournaments(ID),
     CONSTRAINT FK_StageFormat FOREIGN KEY FormatID REFERENCES StageFormats(ID)
 );
 
@@ -111,12 +117,22 @@ CREATE TABLE StageProgressions (
     CONSTRAINT FK_SPNextStage FOREIGN KEY NextStageID REFERENCES Stages(ID)
 );
 
+CREATE TABLE MatchFormats (
+    ID int NOT NULL AUTO_INCREMENT,
+    Name varchar(255),
+    SetCreationFxn varchar(255),
+    ScoringFxn varchar(255),
+    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
+);
+
 CREATE TABLE Matches (
     EventID int NOT NULL,
+    StageID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Matches PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_MatchEvent FOREIGN KEY EventID REFERENCES Events(ID),
+    CONSTRAINT FK_MatchStage FOREIGN KEY StageID REFERENCES Stages(ID),
     CONSTRAINT FK_MatchFormat FOREIGN KEY FormatID REFERENCES MatchFormats(ID)
 );
 
@@ -132,12 +148,20 @@ CREATE TABLE MatchProgressions (
     CONSTRAINT FK_MPNextMatch FOREIGN KEY NextMatchID REFERENCES Matches(ID)
 );
 
+CREATE TABLE SetFormats (
+    ID int NOT NULL AUTO_INCREMENT,
+    Name varchar(255),
+    GameCreationFxn varchar(255),
+    ScoringFxn varchar(255),
+    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
+);
+
 CREATE TABLE Sets (
     EventID int NOT NULL,
     MatchID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
-    CONSTRAINT PK_Sets PRIMARY KEY (EventID, MatchID, ID),
+    CONSTRAINT PK_Sets PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_SetEvent FOREIGN KEY EventID REFERENCES Events(ID),
     CONSTRAINT FK_SetMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
     CONSTRAINT FK_SetFormat FOREIGN KEY FormatID REFERENCES SetFormats(ID)
@@ -145,24 +169,23 @@ CREATE TABLE Sets (
 
 CREATE TABLE Games (
     EventID int NOT NULL,
-    MatchID int NOT NULL,
+    SetID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     GameModeID int NOT NULL,
     MapID int NOT NULL,
-    CONSTRAINT PK_Games PRIMARY KEY (EventID, MatchID, ID),
+    CONSTRAINT PK_Games PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_GameEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_GameMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
+    CONSTRAINT FK_GameSet FOREIGN KEY SetID REFERENCES Sets(ID),
     CONSTRAINT FK_GameMode FOREIGN KEY GameModeID REFERENCES GameModes(ID),
     CONSTRAINT FK_GameMap FOREIGN KEY MapID REFERENCES Map(ID)
 );
 
 CREATE TABLE GameScores (
     EventID int NOT NULL,
-    MatchID int NOT NULL,
     GameID int NOT NULL,
     ParticipantID int NOT NULL,
     Score int NOT NULL DEFAULT 0,
-    CONSTRAINT PK_GScores PRIMARY KEY (EventID, MatchID, GameID, ParticipantID),
+    CONSTRAINT PK_GScores PRIMARY KEY (EventID, GameID, ParticipantID),
     CONSTRAINT FK_GSEvent FOREIGN KEY EventID REFERENCES Events(ID),
     CONSTRAINT FK_GSMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
     CONSTRAINT FK_GSParticipant FOREIGN KEY ParticipantID REFERENCES Participants(ID)
