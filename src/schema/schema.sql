@@ -12,7 +12,7 @@ CREATE TABLE Individuals (
     Password varchar(255) NOT NULL,
     Discord varchar(63),
     Twitter varchar(63),
-    2FA varchar(15),
+    TwoFA varchar(15),
     CONSTRAINT PK_Individuals PRIMARY KEY (ParticipantID),
     CONSTRAINT FK_Individuals FOREIGN KEY ParticipantID REFERENCES Participants(ID)
 );
