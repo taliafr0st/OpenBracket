@@ -94,18 +94,42 @@ CREATE TABLE Stages (
     EventID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL
-    CONSTRAINT PK_Stages PRIMARY KEY (EventID, TournamentID, ID),
+    CONSTRAINT PK_Stages PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_StageEvent FOREIGN KEY EventID REFERENCES Events(ID),
     CONSTRAINT FK_StageFormat FOREIGN KEY FormatID REFERENCES StageFormats(ID)
+);
+
+CREATE TABLE StageProgressions (
+    EventID int NOT NULL,
+    StageID int NOT NULL,
+    NextStageID int NOT NULL,
+    Priority int NOT NULL,
+    ProgressionCount int DEFAULT 1 NOT NULL,
+    CONSTRAINT PK_StageProgressions PRIMARY KEY (EventID, StageID, Priority),
+    CONSTRAINT FK_SPEvent FOREIGN KEY EventID REFERENCES Events(ID),
+    CONSTRAINT FK_SPStage FOREIGN KEY StageID REFERENCES Stages(ID),
+    CONSTRAINT FK_SPNextStage FOREIGN KEY NextStageID REFERENCES Stages(ID)
 );
 
 CREATE TABLE Matches (
     EventID int NOT NULL,
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
-    CONSTRAINT PK_Matches PRIMARY KEY (EventID, TournamentID, StageID, ID),
+    CONSTRAINT PK_Matches PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_MatchEvent FOREIGN KEY EventID REFERENCES Events(ID),
     CONSTRAINT FK_MatchFormat FOREIGN KEY FormatID REFERENCES MatchFormats(ID)
+);
+
+CREATE TABLE MatchProgressions (
+    EventID int NOT NULL,
+    MatchID int NOT NULL,
+    NextMatchID int NOT NULL,
+    Priority int NOT NULL,
+    ProgressionCount int DEFAULT 1 NOT NULL,
+    CONSTRAINT PK_MatchProgressions PRIMARY KEY (EventID, MatchID, Priority),
+    CONSTRAINT FK_MPEvent FOREIGN KEY EventID REFERENCES Events(ID),
+    CONSTRAINT FK_MPMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
+    CONSTRAINT FK_MPNextMatch FOREIGN KEY NextMatchID REFERENCES Matches(ID)
 );
 
 CREATE TABLE Sets (
