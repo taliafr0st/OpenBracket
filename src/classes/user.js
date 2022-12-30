@@ -111,11 +111,31 @@ export class User {
         });
     }
 
+    toString() {
+        return `"${this.name}" (id: ${this.id})`
+    }
+
     createTeam(name, twitter=null, callback) {
         return callback(new Team(name, twitter, callback));
     }
 
-    addUserAsAdmin(user, event) {
+    addUserAsAdmin(user, event, callback) {
+        if (this.id === event.ownerid && user.id != this.id) {
 
+            var sql = `INSERT INTO EventAdmins (EventID, AdminID) VALUES (${db.escape(event.id)},${db.escape(user.id)})`
+
+            db.query(sql, function(error, result, fields) {
+
+                if (error) {
+                    return callback(`${error.sqlMessage}`);
+                }
+
+                return callback(null);
+
+            });
+
+        } else {
+            callback(`${this.toString()} does not own event ${event.toString()}`)
+        }
     }
 }
