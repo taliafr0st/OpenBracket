@@ -5,6 +5,7 @@ export const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'openbracket2022',
+    database: 'openbracket'
 });
 
 //Open connection
