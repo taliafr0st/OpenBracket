@@ -1,4 +1,5 @@
 CREATE DATABASE OpenBracket;
+USE OpenBracket;
 
 CREATE TABLE Participants (
     ID int NOT NULL AUTO_INCREMENT,
@@ -46,7 +47,7 @@ CREATE TABLE Games (
 
 CREATE TABLE GameModes (
     GameID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     Name varchar(255),
     Description varchar(1023),
     CONSTRAINT PK_GameModes PRIMARY KEY (GameID, ID),
@@ -55,7 +56,7 @@ CREATE TABLE GameModes (
 
 CREATE TABLE Maps (
     GameID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     Name varchar(255),
     CONSTRAINT PK_Maps PRIMARY KEY (GameID, ID),
     CONSTRAINT FK_MapGame FOREIGN KEY (GameID) REFERENCES Games(ID)
@@ -79,7 +80,7 @@ CREATE TABLE EventAdmins (
 
 CREATE TABLE Tournaments (
     EventID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     GameID int NOT NULL,
     CONSTRAINT PK_Tournaments PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_TournamentEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
@@ -97,8 +98,8 @@ CREATE TABLE StageFormats (
 CREATE TABLE Stages (
     EventID int NOT NULL,
     TournamentID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    FormatID int NOT NULL
+    ID int NOT NULL,
+    FormatID int NOT NULL,
     CONSTRAINT PK_Stages PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_StageEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
     CONSTRAINT FK_StageTournament FOREIGN KEY (TournamentID) REFERENCES Tournaments(ID),
@@ -128,7 +129,7 @@ CREATE TABLE MatchFormats (
 CREATE TABLE Matches (
     EventID int NOT NULL,
     StageID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     FormatID int NOT NULL,
     CONSTRAINT PK_Matches PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_MatchEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
@@ -159,7 +160,7 @@ CREATE TABLE SetFormats (
 CREATE TABLE Sets (
     EventID int NOT NULL,
     MatchID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     FormatID int NOT NULL,
     CONSTRAINT PK_Sets PRIMARY KEY (EventID, ID),
     CONSTRAINT FK_SetEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
@@ -170,7 +171,7 @@ CREATE TABLE Sets (
 CREATE TABLE Games (
     EventID int NOT NULL,
     SetID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL,
     GameModeID int NOT NULL,
     MapID int NOT NULL,
     CONSTRAINT PK_Games PRIMARY KEY (EventID, ID),
