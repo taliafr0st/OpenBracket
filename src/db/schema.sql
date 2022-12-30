@@ -38,6 +38,14 @@ CREATE TABLE Organisers (
     CONSTRAINT FK_OrgOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID)
 );
 
+CREATE TABLE OrgMembers (
+    OrgID int NOT NULL,
+    MemberID int NOT NULL,
+    CONSTRAINT PK_OrgMembers PRIMARY KEY (OrgID, MemberID),
+    CONSTRAINT FK_OMOrg FOREIGN KEY (OrgID) REFERENCES Organisers(ID),
+    CONSTRAINT FK_OMMember FOREIGN KEY (MemberID) REFERENCES Users(ID)
+);
+
 CREATE TABLE Titles (
     ID int NOT NULL AUTO_INCREMENT,
     Name varchar(255),
@@ -64,10 +72,12 @@ CREATE TABLE Maps (
 
 CREATE TABLE Events (
     ID int NOT NULL AUTO_INCREMENT,
+    OwnerID int NOT NULL,
     OrgID int NOT NULL,
     Name varchar(255),
     CONSTRAINT PK_Events PRIMARY KEY (ID),
-    CONSTRAINT FK_EventOrganiser FOREIGN KEY (OrgID) REFERENCES Organisers(ID)
+    CONSTRAINT FK_EventOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID),
+    CONSTRAINT FK_EventOrg FOREIGN KEY (OrgID) REFERENCES Organisers(ID)
 );
 
 CREATE TABLE EventsAdmins (
