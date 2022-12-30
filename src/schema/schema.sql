@@ -14,7 +14,7 @@ CREATE TABLE Users (
     Twitter varchar(63),
     TwoFA varchar(15),
     CONSTRAINT PK_Users PRIMARY KEY (ParticipantID),
-    CONSTRAINT FK_Users FOREIGN KEY ParticipantID REFERENCES Participants(ID)
+    CONSTRAINT FK_Users FOREIGN KEY (ParticipantID) REFERENCES Participants(ID)
 );
 
 CREATE TABLE Teams (
@@ -23,8 +23,8 @@ CREATE TABLE Teams (
     OwnerID int NOT NULL,
     Twitter varchar(63),
     CONSTRAINT PK_Teams PRIMARY KEY (ParticipantID),
-    CONSTRAINT FK_Teams FOREIGN KEY ParticipantID REFERENCES Participants(ID),
-    CONSTRAINT FK_TeamOwner FOREIGN KEY OwnerID REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_Teams FOREIGN KEY (ParticipantID) REFERENCES Participants(ID),
+    CONSTRAINT FK_TeamOwner FOREIGN KEY (OwnerID) REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Organisers (
@@ -34,7 +34,7 @@ CREATE TABLE Organisers (
     Twitter varchar(63),
     OwnerID int NOT NULL,
     CONSTRAINT PK_Orgs PRIMARY KEY (ID),
-    CONSTRAINT FK_OrgOwner FOREIGN KEY OwnerID REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_OrgOwner FOREIGN KEY (OwnerID) REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Games (
@@ -50,7 +50,7 @@ CREATE TABLE GameModes (
     Name varchar(255),
     Description varchar(1023),
     CONSTRAINT PK_GameModes PRIMARY KEY (GameID, ID),
-    CONSTRAINT FK_GameModeGame FOREIGN KEY GameID REFERENCES Games(ID)
+    CONSTRAINT FK_GameModeGame FOREIGN KEY (GameID) REFERENCES Games(ID)
 );
 
 CREATE TABLE Maps (
@@ -58,7 +58,7 @@ CREATE TABLE Maps (
     ID int NOT NULL AUTO_INCREMENT,
     Name varchar(255),
     CONSTRAINT PK_Maps PRIMARY KEY (GameID, ID),
-    CONSTRAINT FK_MapGame FOREIGN KEY GameID REFERENCES Games(ID)
+    CONSTRAINT FK_MapGame FOREIGN KEY (GameID) REFERENCES Games(ID)
 );
 
 CREATE TABLE Events (
@@ -66,15 +66,15 @@ CREATE TABLE Events (
     OrgID int NOT NULL,
     Name varchar(255),
     CONSTRAINT PK_Events PRIMARY KEY (ID),
-    CONSTRAINT FK_EventOrganiser FOREIGN KEY Org ID REFERENCES Organisers(ID)
+    CONSTRAINT FK_EventOrganiser FOREIGN KEY (OrgID) REFERENCES Organisers(ID)
 );
 
 CREATE TABLE EventAdmins (
     EventID int NOT NULL,
     AdminID int NOT NULL,
     CONSTRAINT PK_Admins PRIMARY KEY (EventID, AdminID),
-    CONSTRAINT FK_AdminEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_AdminPerson FOREIGN KEY AdminID REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_AdminEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_AdminPerson FOREIGN KEY (AdminID) REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Tournaments (
@@ -82,8 +82,8 @@ CREATE TABLE Tournaments (
     ID int NOT NULL AUTO_INCREMENT,
     GameID int NOT NULL,
     CONSTRAINT PK_Tournaments PRIMARY KEY (EventID, ID),
-    CONSTRAINT FK_TournamentEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_TournamentGame FOREIGN KEY GameID REFERENCES Games(ID)
+    CONSTRAINT FK_TournamentEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_TournamentGame FOREIGN KEY (GameID) REFERENCES Games(ID)
 );
 
 CREATE TABLE StageFormats (
@@ -100,9 +100,9 @@ CREATE TABLE Stages (
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL
     CONSTRAINT PK_Stages PRIMARY KEY (EventID, ID),
-    CONSTRAINT FK_StageEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_StageTournament FOREIGN KEY TournamentID REFERENCES Tournaments(ID),
-    CONSTRAINT FK_StageFormat FOREIGN KEY FormatID REFERENCES StageFormats(ID)
+    CONSTRAINT FK_StageEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_StageTournament FOREIGN KEY (TournamentID) REFERENCES Tournaments(ID),
+    CONSTRAINT FK_StageFormat FOREIGN KEY (FormatID) REFERENCES StageFormats(ID)
 );
 
 CREATE TABLE StageProgressions (
@@ -112,9 +112,9 @@ CREATE TABLE StageProgressions (
     Priority int NOT NULL,
     ProgressionCount int DEFAULT 1 NOT NULL,
     CONSTRAINT PK_StageProgressions PRIMARY KEY (EventID, StageID, Priority),
-    CONSTRAINT FK_SPEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_SPStage FOREIGN KEY StageID REFERENCES Stages(ID),
-    CONSTRAINT FK_SPNextStage FOREIGN KEY NextStageID REFERENCES Stages(ID)
+    CONSTRAINT FK_SPEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_SPStage FOREIGN KEY (StageID) REFERENCES Stages(ID),
+    CONSTRAINT FK_SPNextStage FOREIGN KEY (NextStageID) REFERENCES Stages(ID)
 );
 
 CREATE TABLE MatchFormats (
@@ -131,9 +131,9 @@ CREATE TABLE Matches (
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Matches PRIMARY KEY (EventID, ID),
-    CONSTRAINT FK_MatchEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_MatchStage FOREIGN KEY StageID REFERENCES Stages(ID),
-    CONSTRAINT FK_MatchFormat FOREIGN KEY FormatID REFERENCES MatchFormats(ID)
+    CONSTRAINT FK_MatchEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_MatchStage FOREIGN KEY (StageID) REFERENCES Stages(ID),
+    CONSTRAINT FK_MatchFormat FOREIGN KEY (FormatID) REFERENCES MatchFormats(ID)
 );
 
 CREATE TABLE MatchProgressions (
@@ -143,9 +143,9 @@ CREATE TABLE MatchProgressions (
     Priority int NOT NULL,
     ProgressionCount int DEFAULT 1 NOT NULL,
     CONSTRAINT PK_MatchProgressions PRIMARY KEY (EventID, MatchID, Priority),
-    CONSTRAINT FK_MPEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_MPMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
-    CONSTRAINT FK_MPNextMatch FOREIGN KEY NextMatchID REFERENCES Matches(ID)
+    CONSTRAINT FK_MPEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_MPMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
+    CONSTRAINT FK_MPNextMatch FOREIGN KEY (NextMatchID) REFERENCES Matches(ID)
 );
 
 CREATE TABLE SetFormats (
@@ -162,9 +162,9 @@ CREATE TABLE Sets (
     ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Sets PRIMARY KEY (EventID, ID),
-    CONSTRAINT FK_SetEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_SetMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
-    CONSTRAINT FK_SetFormat FOREIGN KEY FormatID REFERENCES SetFormats(ID)
+    CONSTRAINT FK_SetEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_SetMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
+    CONSTRAINT FK_SetFormat FOREIGN KEY (FormatID) REFERENCES SetFormats(ID)
 );
 
 CREATE TABLE Games (
@@ -174,10 +174,10 @@ CREATE TABLE Games (
     GameModeID int NOT NULL,
     MapID int NOT NULL,
     CONSTRAINT PK_Games PRIMARY KEY (EventID, ID),
-    CONSTRAINT FK_GameEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_GameSet FOREIGN KEY SetID REFERENCES Sets(ID),
-    CONSTRAINT FK_GameMode FOREIGN KEY GameModeID REFERENCES GameModes(ID),
-    CONSTRAINT FK_GameMap FOREIGN KEY MapID REFERENCES Map(ID)
+    CONSTRAINT FK_GameEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_GameSet FOREIGN KEY (SetID) REFERENCES Sets(ID),
+    CONSTRAINT FK_GameMode FOREIGN KEY (GameModeID) REFERENCES GameModes(ID),
+    CONSTRAINT FK_GameMap FOREIGN KEY (MapID) REFERENCES Map(ID)
 );
 
 CREATE TABLE GameScores (
@@ -186,7 +186,7 @@ CREATE TABLE GameScores (
     ParticipantID int NOT NULL,
     Score int NOT NULL DEFAULT 0,
     CONSTRAINT PK_GScores PRIMARY KEY (EventID, GameID, ParticipantID),
-    CONSTRAINT FK_GSEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_GSMatch FOREIGN KEY MatchID REFERENCES Matches(ID),
-    CONSTRAINT FK_GSParticipant FOREIGN KEY ParticipantID REFERENCES Participants(ID)
+    CONSTRAINT FK_GSEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
+    CONSTRAINT FK_GSMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
+    CONSTRAINT FK_GSParticipant FOREIGN KEY (ParticipantID) REFERENCES Participants(ID)
 );
