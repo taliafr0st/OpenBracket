@@ -69,7 +69,7 @@ export class User {
                     if(this.twofa) {sqlfields += `,TwoFA`; sqlvalues += `, ${mysql.escape(this.twofa)}`}
 
                     sqlfields += `) `;
-                    sqlvalues += `)`;
+                    sqlvalues += `);`;
 
                     var sql = sqlfields+sqlvalues
 
