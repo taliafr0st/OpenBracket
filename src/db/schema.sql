@@ -73,7 +73,7 @@ CREATE TABLE Maps (
 CREATE TABLE Events (
     ID int NOT NULL AUTO_INCREMENT,
     OwnerID int NOT NULL,
-    OrgID int NOT NULL,
+    OrgID int,
     Name varchar(255),
     CONSTRAINT PK_Events PRIMARY KEY (ID),
     CONSTRAINT FK_EventOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID),
