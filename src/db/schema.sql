@@ -29,7 +29,7 @@ CREATE TABLE Teams (
 );
 
 CREATE TABLE Organisers (
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     Name varchar(63) NOT NULL,
     Discord varchar(63),
     Twitter varchar(63),
@@ -47,7 +47,7 @@ CREATE TABLE Titles (
 
 CREATE TABLE GameModes (
     TitleID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     Name varchar(255),
     Description varchar(1023),
     CONSTRAINT PK_GameModes PRIMARY KEY (ID),
@@ -56,7 +56,7 @@ CREATE TABLE GameModes (
 
 CREATE TABLE Maps (
     TitleID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     Name varchar(255),
     CONSTRAINT PK_Maps PRIMARY KEY (ID),
     CONSTRAINT FK_MapTitle FOREIGN KEY (TitleID) REFERENCES Titles(ID)
@@ -80,7 +80,7 @@ CREATE TABLE EventsAdmins (
 
 CREATE TABLE Tournaments (
     EventID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     TitleID int NOT NULL,
     CONSTRAINT PK_Tournaments PRIMARY KEY (ID),
     CONSTRAINT FK_TournamentEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
@@ -97,7 +97,7 @@ CREATE TABLE StageFormats (
 
 CREATE TABLE Stages (
     TournamentID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Stages PRIMARY KEY (ID),
     CONSTRAINT FK_StageTournament FOREIGN KEY (TournamentID) REFERENCES Tournaments(ID),
@@ -124,7 +124,7 @@ CREATE TABLE MatchFormats (
 
 CREATE TABLE Matches (
     StageID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Matches PRIMARY KEY (ID),
     CONSTRAINT FK_MatchStage FOREIGN KEY (StageID) REFERENCES Stages(ID),
@@ -151,7 +151,7 @@ CREATE TABLE SetFormats (
 
 CREATE TABLE Sets (
     MatchID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     FormatID int NOT NULL,
     CONSTRAINT PK_Sets PRIMARY KEY (ID),
     CONSTRAINT FK_SetMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
@@ -160,7 +160,7 @@ CREATE TABLE Sets (
 
 CREATE TABLE Games (
     SetID int NOT NULL,
-    ID int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
     GameModeID int NOT NULL,
     MapID int NOT NULL,
     CONSTRAINT PK_Games PRIMARY KEY (ID),
