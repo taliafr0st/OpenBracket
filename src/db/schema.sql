@@ -25,7 +25,7 @@ CREATE TABLE Teams (
     Twitter varchar(63),
     CONSTRAINT PK_Teams PRIMARY KEY (ID),
     CONSTRAINT FK_Teams FOREIGN KEY (ID) REFERENCES Participants(ID),
-    CONSTRAINT FK_TeamOwner FOREIGN KEY (OwnerID) REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_TeamOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID)
 );
 
 CREATE TABLE Organisers (
@@ -35,7 +35,7 @@ CREATE TABLE Organisers (
     Twitter varchar(63),
     OwnerID int NOT NULL,
     CONSTRAINT PK_Orgs PRIMARY KEY (ID),
-    CONSTRAINT FK_OrgOwner FOREIGN KEY (OwnerID) REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_OrgOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID)
 );
 
 CREATE TABLE Titles (
@@ -75,7 +75,7 @@ CREATE TABLE EventsAdmins (
     AdminID int NOT NULL,
     CONSTRAINT PK_Admins PRIMARY KEY (EventID, AdminID),
     CONSTRAINT FK_AdminEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
-    CONSTRAINT FK_AdminPerson FOREIGN KEY (AdminID) REFERENCES Users(ParticipantID)
+    CONSTRAINT FK_AdminPerson FOREIGN KEY (AdminID) REFERENCES Users(ID)
 );
 
 CREATE TABLE Tournaments (
