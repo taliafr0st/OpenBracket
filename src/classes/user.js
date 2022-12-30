@@ -116,7 +116,11 @@ export class User {
     }
 
     createTeam(name, twitter=null, callback) {
-        return callback(new Team(name, twitter, callback));
+        return callback(new Team(name, this, twitter, callback));
+    }
+
+    createEvent(name, twitter=null, callback) {
+        return callback(new Event(name, this, org, callback));
     }
 
     addUserAsAdmin(user, event, callback) {
