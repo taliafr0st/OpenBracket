@@ -1,6 +1,38 @@
 import sjcl from 'sjcl'
 
-class Individual {
+/*
+Reference: https://stackoverflow.com/a/27612338
+Published: 12/23/2014 - https://stackoverflow.com/users/4386702/halbgut
+Retrieved: 12/30/2022
+*/
+function createRandomString (callback, length) {
+    var randomBase64String = '',
+    checkReadyness;
+  
+    checkReadyness = setInterval( function () {
+        console.log(length);
+        if(sjcl.random.isReady(10)) {
+            while(randomBase64String.length < length) {
+                randomInt = sjcl.random.randomWords(1, 10)[0];
+                randomBase64String += btoa(randomInt);
+            }
+            randomBase64String = randomBase64String.substring(0, length);
+            callback(randomBase64String);
+            clearInterval(checkReadyness);
+        }
+    }, 1);
+}
+
+export class IndividualTable {
+    constructor() {
+
+    }
+    getIndividualById(id) {
+
+    }
+}
+
+export class Individual {
     constructor(name, email, password, discord=null, twitter=null, twofa=false) {
         this.name=name;
         this.email=email;
@@ -12,7 +44,7 @@ class Individual {
         if(discord) { this.discord=discord }
         if(twitter) { this.twitter=twitter }
         if(twofa) {
-            this.twofa = Math.random().toString(36).substring(2,17);
+            this.twofa = createRandomString(15);
         }
     }
 }
