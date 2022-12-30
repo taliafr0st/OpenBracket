@@ -7,24 +7,24 @@ CREATE TABLE Participants (
 );
 
 CREATE TABLE Users (
-    ParticipantID int NOT NULL,
+    ID int NOT NULL,
     Name varchar(63) NOT NULL,
     Email varchar(255) NOT NULL,
     Password varchar(255) NOT NULL,
     Discord varchar(63),
     Twitter varchar(63),
     TwoFA varchar(15),
-    CONSTRAINT PK_Users PRIMARY KEY (ParticipantID),
-    CONSTRAINT FK_Users FOREIGN KEY (ParticipantID) REFERENCES Participants(ID)
+    CONSTRAINT PK_Users PRIMARY KEY (ID),
+    CONSTRAINT FK_Users FOREIGN KEY (ID) REFERENCES Participants(ID)
 );
 
 CREATE TABLE Teams (
-    ParticipantID int NOT NULL,
+    ID int NOT NULL,
     Name varchar(63) NOT NULL,
     OwnerID int NOT NULL,
     Twitter varchar(63),
-    CONSTRAINT PK_Teams PRIMARY KEY (ParticipantID),
-    CONSTRAINT FK_Teams FOREIGN KEY (ParticipantID) REFERENCES Participants(ID),
+    CONSTRAINT PK_Teams PRIMARY KEY (ID),
+    CONSTRAINT FK_Teams FOREIGN KEY (ID) REFERENCES Participants(ID),
     CONSTRAINT FK_TeamOwner FOREIGN KEY (OwnerID) REFERENCES Users(ParticipantID)
 );
 
