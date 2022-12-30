@@ -5,7 +5,7 @@ CREATE TABLE Participants (
     CONSTRAINT PK_Participants PRIMARY KEY (ID)
 );
 
-CREATE TABLE Individuals (
+CREATE TABLE Users (
     ParticipantID int NOT NULL,
     Name varchar(63) NOT NULL,
     Email varchar(255) NOT NULL,
@@ -13,8 +13,8 @@ CREATE TABLE Individuals (
     Discord varchar(63),
     Twitter varchar(63),
     TwoFA varchar(15),
-    CONSTRAINT PK_Individuals PRIMARY KEY (ParticipantID),
-    CONSTRAINT FK_Individuals FOREIGN KEY ParticipantID REFERENCES Participants(ID)
+    CONSTRAINT PK_Users PRIMARY KEY (ParticipantID),
+    CONSTRAINT FK_Users FOREIGN KEY ParticipantID REFERENCES Participants(ID)
 );
 
 CREATE TABLE Teams (
@@ -24,7 +24,7 @@ CREATE TABLE Teams (
     Twitter varchar(63),
     CONSTRAINT PK_Teams PRIMARY KEY (ParticipantID),
     CONSTRAINT FK_Teams FOREIGN KEY ParticipantID REFERENCES Participants(ID),
-    CONSTRAINT FK_TeamOwner FOREIGN KEY OwnerID REFERENCES Individuals(ParticipantID)
+    CONSTRAINT FK_TeamOwner FOREIGN KEY OwnerID REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Organisers (
@@ -34,7 +34,7 @@ CREATE TABLE Organisers (
     Twitter varchar(63),
     OwnerID int NOT NULL,
     CONSTRAINT PK_Orgs PRIMARY KEY (ID),
-    CONSTRAINT FK_OrgOwner FOREIGN KEY OwnerID REFERENCES Individuals(ParticipantID)
+    CONSTRAINT FK_OrgOwner FOREIGN KEY OwnerID REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Games (
@@ -74,7 +74,7 @@ CREATE TABLE EventAdmins (
     AdminID int NOT NULL,
     CONSTRAINT PK_Admins PRIMARY KEY (EventID, AdminID),
     CONSTRAINT FK_AdminEvent FOREIGN KEY EventID REFERENCES Events(ID),
-    CONSTRAINT FK_AdminPerson FOREIGN KEY AdminID REFERENCES Individuals(ParticipantID)
+    CONSTRAINT FK_AdminPerson FOREIGN KEY AdminID REFERENCES Users(ParticipantID)
 );
 
 CREATE TABLE Tournaments (
