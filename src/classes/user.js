@@ -24,16 +24,16 @@ function createRandomString (callback, length) {
     }, 1);
 }
 
-export class IndividualTable {
+export class UserTable {
     constructor() {
 
     }
-    getIndividualById(id) {
+    getUserById(id) {
 
     }
 }
 
-export class Individual {
+export class User {
     constructor(name, email, password, discord=null, twitter=null, twofa=false) {
         this.name=name;
         this.email=email;
@@ -51,4 +51,6 @@ export class Individual {
     createTeam(name, twitter=null) {
         return new Team(name, twitter);
     }
+
+    addUserAsAdmin(userid)
 }
