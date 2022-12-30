@@ -1,4 +1,5 @@
 import sjcl from 'sjcl'
+import Team from './team.js'
 
 /*
 Reference: https://stackoverflow.com/a/27612338
@@ -46,5 +47,8 @@ export class Individual {
         if(twofa) {
             this.twofa = createRandomString(15);
         }
+    }
+    createTeam(name, twitter=null) {
+        return new Team(name, twitter);
     }
 }
