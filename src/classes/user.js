@@ -37,8 +37,8 @@ export class UserTable {
 }
 
 export class User {
+    id; name; email; password; discord; twitter; twofa;
     constructor(callback, id=null, name=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
-        this.id; this.name; this.email; this.password; this.discord; this.twitter; this.twofa;
         var sql;
         
         if (id) {
@@ -53,7 +53,7 @@ export class User {
                 this.id=id;
                 this.name=result[0].Name;
                 this.email=result[0].Email;
-                this.password=result[0].Password;
+                this.#password=result[0].Password;
                 if (result[0].Discord) {this.discord=result[0].Discord}
                 if (result[0].Twitter) {this.twitter=result[0].Twitter}
                 if (result[0].TwoFA) {this.twofa=result[0].TwoFA}
@@ -62,7 +62,57 @@ export class User {
             });
         }
 
-        sql = `INSERT INTO Participants () VALUES ();`
+        const myBitArray = sjcl.hash.sha256.hash(password);
+        const myHash = sjcl.codec.hex.fromBits(myBitArray);
+
+        var tempId = result.insertId;
+
+        var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
+        var sqlvalues = `VALUES ((SELECT LAST_INSERT_ID()), ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
+
+        if(discord) {
+            sqlfields += `, Discord`;
+            sqlvalues += `, ${db.escape(discord)}`;
+        }
+        if(twitter) {
+            sqlfields += `, Twitter`;
+            sqlvalues += `, ${db.escape(twitter)}`;
+        }
+
+        if(twofa) {
+            createRandomString(function(response) {
+
+                sqlfields += `, TwoFA) `;
+                sqlvalues += `, ${db.escape(response)});`;
+
+                sql = `INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues
+
+                db.query(sql, function(error, result, fields) {
+
+                    if (error) {
+                        return callback(null,`${error.sqlMessage}`);
+                    }
+
+                    this.id=tempId;
+
+                    this.name=name;
+                    this.email=email;
+
+                    this.password=myHash;
+                    if(discord) { this.discord=discord }
+                    if(twitter) { this.twitter=twitter }
+                    
+                    this.twofa=response;
+
+                    return callback(this, null);
+                });
+            }, 15);
+        }
+
+        sqlfields += `) `;
+        sqlvalues += `);`;
+
+        sql = `INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues
 
         db.query(sql, function(error, result, fields) {
 
@@ -70,76 +120,16 @@ export class User {
                 return callback(null,`${error.sqlMessage}`);
             }
 
-            const myBitArray = sjcl.hash.sha256.hash(password);
-            const myHash = sjcl.codec.hex.fromBits(myBitArray);
+            this.id=tempId;
 
-            var tempId = result.insertId;
+            this.name=name;
+            this.email=email;
 
-            if(twofa) {
-                createRandomString(function(response) {
+            this.password=myHash;
+            if(discord) { this.discord=discord }
+            if(twitter) { this.twitter=twitter }
 
-                    var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
-                    var sqlvalues = `VALUES (${tempId}, ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
-
-                    if(discord) {sqlfields += `, Discord`; sqlvalues += `, ${db.escape(discord)}`}
-                    if(twitter) {sqlfields += `, Twitter`; sqlvalues += `, ${db.escape(twitter)}`}
-                    sqlfields += `, TwoFA`; sqlvalues += `, ${db.escape(response)}`
-
-                    sqlfields += `) `;
-                    sqlvalues += `);`;
-
-                    sql = sqlfields+sqlvalues
-
-                    db.query(sql, function(error, result, fields) {
-
-                        if (error) {
-                            return callback(null,`${error.sqlMessage}`);
-                        }
-
-                        this.id=tempId;
-
-                        this.name=name;
-                        this.email=email;
-
-                        this.password=myHash;
-                        if(discord) { this.discord=discord }
-                        if(twitter) { this.twitter=twitter }
-                        
-                        this.twofa=response;
-
-                        return callback(this, null);
-                    });
-                }, 15);
-            }
-
-            var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
-            var sqlvalues = `VALUES (${tempId}, ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
-
-            if(discord) {sqlfields += `, Discord`; sqlvalues += `, ${db.escape(discord)}`}
-            if(twitter) {sqlfields += `, Twitter`; sqlvalues += `, ${db.escape(twitter)}`}
-
-            sqlfields += `) `;
-            sqlvalues += `);`;
-
-            sql = sqlfields+sqlvalues
-
-            db.query(sql, function(error, result, fields) {
-
-                if (error) {
-                    return callback(null,`${error.sqlMessage}`);
-                }
-
-                this.id=tempId;
-
-                this.name=name;
-                this.email=email;
-
-                this.password=myHash;
-                if(discord) { this.discord=discord }
-                if(twitter) { this.twitter=twitter }
-
-                return callback(this, null);
-            });
+            return callback(this, null);
         });
     }
 
