@@ -39,9 +39,10 @@ export class UserTable {
 export class User {
     constructor(callback, id=null, name=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
         this.id; this.name; this.email; this.password; this.discord; this.twitter; this.twofa;
+        var sql;
         
         if (id) {
-            var sql = `SELECT * FROM Users WHERE ID = ${db.escape(id)};`;
+            var sql = `SELECT * FROM Users WHERE ID = ${id};`;
 
             db.query(sql, function(error, result, fields) {
 
@@ -49,7 +50,7 @@ export class User {
                     return callback(null,`${error.sqlMessage}`);
                 }
     
-                this.id=result[0].ID;
+                this.id=id;
                 this.name=result[0].Name;
                 this.email=result[0].Email;
                 this.password=result[0].Password;
@@ -61,7 +62,7 @@ export class User {
             });
         }
 
-        var sql = `INSERT INTO Participants () VALUES ();`
+        sql = `INSERT INTO Participants () VALUES ();`
 
         db.query(sql, function(error, result, fields) {
 
@@ -69,33 +70,25 @@ export class User {
                 return callback(null,`${error.sqlMessage}`);
             }
 
-            this.name=name;
-            this.email=email;
-
             const myBitArray = sjcl.hash.sha256.hash(password);
             const myHash = sjcl.codec.hex.fromBits(myBitArray);
 
-            this.password=myHash;
-            if(discord) { this.discord=discord }
-            if(twitter) { this.twitter=twitter }
-
-            this.id = result.insertId;
+            var tempId = result.insertId;
 
             if(twofa) {
                 createRandomString(function(response) {
-                    this.twofa=response;
 
                     var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
-                    var sqlvalues = `VALUES (${db.escape(this.id)}, ${db.escape(this.name)}, ${db.escape(this.email)}, ${db.escape(this.password)}`
+                    var sqlvalues = `VALUES (${tempId}, ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
 
-                    if(this.discord) {sqlfields += `,Discord`; sqlvalues += `, ${db.escape(this.discord)}`}
-                    if(this.twitter) {sqlfields += `,Twitter`; sqlvalues += `, ${db.escape(this.twitter)}`}
-                    if(this.twofa) {sqlfields += `,TwoFA`; sqlvalues += `, ${db.escape(this.twofa)}`}
+                    if(discord) {sqlfields += `, Discord`; sqlvalues += `, ${db.escape(discord)}`}
+                    if(twitter) {sqlfields += `, Twitter`; sqlvalues += `, ${db.escape(twitter)}`}
+                    sqlfields += `, TwoFA`; sqlvalues += `, ${db.escape(response)}`
 
                     sqlfields += `) `;
                     sqlvalues += `);`;
 
-                    var sql = sqlfields+sqlvalues
+                    sql = sqlfields+sqlvalues
 
                     db.query(sql, function(error, result, fields) {
 
@@ -103,15 +96,155 @@ export class User {
                             return callback(null,`${error.sqlMessage}`);
                         }
 
+                        this.id=tempId;
+
+                        this.name=name;
+                        this.email=email;
+
+                        this.password=myHash;
+                        if(discord) { this.discord=discord }
+                        if(twitter) { this.twitter=twitter }
+                        
+                        this.twofa=response;
+
                         return callback(this, null);
                     });
                 }, 15);
             }
+            
+            var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
+            var sqlvalues = `VALUES (${tempId}, ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
+
+            if(discord) {sqlfields += `, Discord`; sqlvalues += `, ${db.escape(discord)}`}
+            if(twitter) {sqlfields += `, Twitter`; sqlvalues += `, ${db.escape(twitter)}`}
+
+            sqlfields += `) `;
+            sqlvalues += `);`;
+
+            sql = sqlfields+sqlvalues
+
+            db.query(sql, function(error, result, fields) {
+
+                if (error) {
+                    return callback(null,`${error.sqlMessage}`);
+                }
+
+                this.id=tempId;
+
+                this.name=name;
+                this.email=email;
+
+                this.password=myHash;
+                if(discord) { this.discord=discord }
+                if(twitter) { this.twitter=twitter }
+
+                return callback(this, null);
+            });
         });
     }
 
     toString() {
         return `"${this.name}" (id: ${this.id})`;
+    }
+
+    updateInfo(callback, name=null, email=null, discord=null, twitter=null) {
+        
+        var sql = `UPDATE Users SET `
+
+        if(name) {sql += `Name=${db.escape(name)}, `}
+        if(email) {sql += `Email=${db.escape(email)}, `}
+        if(discord) {sql += `Discord=${db.escape(discord)}, `}
+        if(twitter) {sql += `Twitter=${db.escape(twitter)}, `}
+
+        if (sql===`UPDATE Users SET `) {
+            return callback(null);
+        }
+
+        sql = sql.substring(0,length(sql)-2)+` WHERE ID=${this.id});`;
+
+        db.query(sql, function(error, result, fields) {
+
+            if (error) {
+                return callback(`${error.sqlMessage}`);
+            }
+            if (name) {this.name=name}
+            if (email) {this.email=email}
+            if (discord) {this.discord=discord}
+            if (twitter) {this.twitter=twitter}
+            return callback(null);
+
+        });
+    }
+
+    changePassword(callback, oldpassword, newpassword, confirmpassword) {
+        if (oldpassword === newpassword) {
+            return callback(`Old and new passwords are the same`);
+        } else if (!(newpassword === confirmpassword)) {
+            return callback(`New passwords are different`);
+        }
+
+        const oldBitArray = sjcl.hash.sha256.hash(oldpassword);
+        const oldHash = sjcl.codec.hex.fromBits(oldBitArray);
+
+        if (!(oldHash === this.password)) {
+            return callback(`Incorrect password`);
+        }
+
+        const newBitArray = sjcl.hash.sha256.hash(newpassword);
+        const newHash = sjcl.codec.hex.fromBits(newBitArray);
+
+        var sql = `Update Users SET Password=${newHash} WHERE ID=${this.id};`
+
+        db.query(sql, function(error, result, fields) {
+
+            if (error) {
+                return callback(`${error.sqlMessage}`);
+            }
+            this.password = newHash;
+            return callback(null);
+
+        });
+    }
+
+    toggleTwoFA(callback,twofa) {
+        if (this.twofa && twofa) {
+            return callback(`2FA is already activated`)
+        } else if (!(this.twofa || twofa)) {
+            return callback(`2FA is already off`)
+        }
+
+        if (this.twofa) {
+
+            var sql = `UPDATE Users SET TwoFA=NULL WHERE ID=${this.id}`
+
+            db.query(sql, function(error, result, fields) {
+
+                if (error) {
+                    return callback(`${error.sqlMessage}`);
+                }
+                this.twofa=undefined;
+                return callback(null);
+    
+            });
+        }
+
+        createRandomString(function(response) {
+            this.twofa=response;
+
+            var sql = `UPDATE Users SET TwoFA=${response} WHERE ID=${this.id}`
+
+            db.query(sql, function(error, result, fields) {
+
+                if (error) {
+                    this.twofa=undefined;
+                    return callback(`${error.sqlMessage}`);
+                }
+                return callback(null);
+    
+            });
+
+        }, 15);
+
     }
 
     // addUserAsAdmin(user, event, callback) {
