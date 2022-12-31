@@ -234,6 +234,22 @@ export class User {
 
     }
 
+    delete(callback) {
+
+        var sql = `DELETE FROM Users WHERE ID=${this.id};`
+
+        db.query(sql, function(error, result, fields) {
+
+            if (error) {
+                return callback(`${error.sqlMessage}`);
+            }
+
+            this.id=null;
+            return callback(null);
+
+        });
+    }
+
     // addUserAsAdmin(user, event, callback) {
     //     if (this.id === event.ownerid && user.id != this.id) {
 
