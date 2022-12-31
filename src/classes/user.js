@@ -111,7 +111,7 @@ export class User {
                     });
                 }, 15);
             }
-            
+
             var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
             var sqlvalues = `VALUES (${tempId}, ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
 
@@ -229,16 +229,15 @@ export class User {
         }
 
         createRandomString(function(response) {
-            this.twofa=response;
 
             var sql = `UPDATE Users SET TwoFA=${response} WHERE ID=${this.id}`
 
             db.query(sql, function(error, result, fields) {
 
                 if (error) {
-                    this.twofa=undefined;
                     return callback(`${error.sqlMessage}`);
                 }
+                this.twofa=response;
                 return callback(null);
     
             });
