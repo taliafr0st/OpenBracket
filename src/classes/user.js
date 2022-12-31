@@ -65,8 +65,6 @@ export class User {
         const myBitArray = sjcl.hash.sha256.hash(password);
         const myHash = sjcl.codec.hex.fromBits(myBitArray);
 
-        var tempId = result.insertId;
-
         var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
         var sqlvalues = `VALUES ((SELECT LAST_INSERT_ID()), ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
 
@@ -93,7 +91,7 @@ export class User {
                         return callback(null,`${error.sqlMessage}`);
                     }
 
-                    this.id=tempId;
+                    this.id=result.insertId;
 
                     this.name=name;
                     this.email=email;
