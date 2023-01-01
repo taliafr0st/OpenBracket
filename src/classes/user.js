@@ -25,10 +25,7 @@ function createRandomString (callback, length) {
     }, 1);
 }
 
-export class UserTable {
-    constructor() {
-
-    }
+export const UserTable = class {
     getUserById(callback, id) {
         new User(function (obj, err) {
             callback(obj, err);
