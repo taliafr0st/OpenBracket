@@ -1,6 +1,3 @@
-CREATE DATABASE OpenBracket;
-USE OpenBracket;
-
 CREATE TABLE Participants (
     ID int NOT NULL AUTO_INCREMENT,
     CONSTRAINT PK_Participants PRIMARY KEY (ID)
