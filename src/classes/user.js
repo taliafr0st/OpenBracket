@@ -80,7 +80,7 @@ export class User {
                 sqlfields += `, TwoFA) `;
                 sqlvalues += `, ${db.escape(response)});`;
 
-                sql = `INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues
+                sql = `START TRANSACTION; INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues+` COMMIT;`
 
                 db.query(sql, function(error, result, fields) {
 
@@ -107,7 +107,7 @@ export class User {
         sqlfields += `) `;
         sqlvalues += `);`;
 
-        sql = `INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues
+        sql = `START TRANSACTION; INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues+` COMMIT;`
 
         db.query(sql, function(error, result, fields) {
 
