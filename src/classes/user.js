@@ -16,7 +16,7 @@ function createRandomString (callback, length) {
         if(sjcl.random.isReady(10)) {
             while(randomBase64String.length < length) {
                 randomInt = sjcl.random.randomWords(1, 10)[0];
-                randomBase64String += btoa(randomInt);
+                randomBase64String += randomInt.toString("base64");
             }
             randomBase64String = randomBase64String.substring(0, length);
             callback(randomBase64String);
@@ -25,16 +25,41 @@ function createRandomString (callback, length) {
     }, 1);
 }
 
+function isPasswordSecure(pswd) {
+    var err = "";
+    if (pswd.length < 10) {
+        err += "Password is too short\n";
+    }
+    if (!hasNumber(pswd)) {
+        err += "Password does not contain any numbers\n";
+    }
+    if (!/A-Z/.test(pswd)) {
+        err += "Password does not contain any upper case letters\n"
+    }
+    if (!/a-z/.test(pswd)) {
+        err += "Password does not contain any lower case letters\n"
+    }
+    if (!err) {
+        return null;
+    } else {
+        return err.substring(0, length-1);
+    }
+}
+
 export const UserTable = class {
+
     getUserById(callback, id) {
         new User(function (obj, err) {
             callback(obj, err);
         }, id)
     }
+
 }
 
 export class User {
+
     id; name; email; password; discord; twitter; twofa;
+
     constructor(callback, id=null, name=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
         var sql;
         
@@ -50,13 +75,19 @@ export class User {
                 this.id=id;
                 this.name=result[0].Name;
                 this.email=result[0].Email;
-                this.#password=result[0].Password;
+                this.password=result[0].Password;
                 if (result[0].Discord) {this.discord=result[0].Discord}
                 if (result[0].Twitter) {this.twitter=result[0].Twitter}
                 if (result[0].TwoFA) {this.twofa=result[0].TwoFA}
 
                 return callback(this, null);
             });
+        }
+
+        var passwordStatus = isPasswordSecure(password);
+
+        if (passwordStatus) {
+            return callback(null, passwordStatus);
         }
 
         const myBitArray = sjcl.hash.sha256.hash(password);
@@ -173,6 +204,12 @@ export class User {
 
         if (!(oldHash === this.password)) {
             return callback(`Incorrect password`);
+        }
+
+        var passwordStatus = isPasswordSecure(password);
+
+        if (passwordStatus) {
+            return callback(passwordStatus);
         }
 
         const newBitArray = sjcl.hash.sha256.hash(newpassword);
