@@ -5,7 +5,8 @@ CREATE TABLE Participants (
 
 CREATE TABLE Users (
     ID int NOT NULL,
-    Name varchar(63) NOT NULL,
+    Username varchar(63) NOT NULL UNIQUE,
+    DisplayName varchar(63) NOT NULL,
     Email varchar(255) NOT NULL UNIQUE,
     Password varchar(255) NOT NULL,
     Discord varchar(63),

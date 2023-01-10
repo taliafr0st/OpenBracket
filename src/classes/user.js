@@ -1,6 +1,5 @@
-import sjcl from 'sjcl';
-import { Team } from './team.js';
-import { db } from '../db/dbconn.js';
+const sjcl = require('sjcl');
+const db = require('../db/dbconn.js');
 
 /*
 Reference: https://stackoverflow.com/a/27612338
@@ -46,21 +45,27 @@ function isPasswordSecure(pswd) {
     }
 }
 
-export const UserTable = class {
+const UserTable = class {
 
     getUserById(callback, id) {
         new User(function (obj, err) {
             callback(obj, err);
-        }, id)
+        }, id);
+    }
+
+    getUserByUsername(callback, username) {
+        new User(function (obj, err) {
+            callback(obj, err);
+        }, null, username);
     }
 
 }
 
-export class User {
+class User {
 
     id; name; email; password; discord; twitter; twofa;
 
-    constructor(callback, id=null, name=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
+    constructor(callback, id=null, username=null, displayname=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
         var sql;
         
         if (id) {
@@ -73,7 +78,30 @@ export class User {
                 }
     
                 this.id=id;
-                this.name=result[0].Name;
+                this.username=result[0].Username;
+                this.displayname=result[0].DisplayName;
+                this.email=result[0].Email;
+                this.password=result[0].Password;
+                if (result[0].Discord) {this.discord=result[0].Discord}
+                if (result[0].Twitter) {this.twitter=result[0].Twitter}
+                if (result[0].TwoFA) {this.twofa=result[0].TwoFA}
+
+                return callback(this, null);
+            });
+        }
+
+        if (username) {
+            var sql = `SELECT * FROM Users WHERE Username = ${username};`;
+
+            db.query(sql, function(error, result, fields) {
+
+                if (error) {
+                    return callback(null,`${error.sqlMessage}`);
+                }
+    
+                this.id=result[0].ID;
+                this.username=username;
+                this.displayname=result[0].DisplayName;
                 this.email=result[0].Email;
                 this.password=result[0].Password;
                 if (result[0].Discord) {this.discord=result[0].Discord}
@@ -121,7 +149,8 @@ export class User {
 
                     this.id=result.insertId;
 
-                    this.name=name;
+                    this.username=username;
+                    this.displayname=displayname;
                     this.email=email;
 
                     this.password=myHash;
@@ -148,7 +177,8 @@ export class User {
 
             this.id=tempId;
 
-            this.name=name;
+            this.username=username;
+            this.displayname=displayname;
             this.email=email;
 
             this.password=myHash;
@@ -228,6 +258,18 @@ export class User {
         });
     }
 
+    comparePassword(password) {
+
+        const bitArray = sjcl.hash.sha256.hash(password);
+        const hash = sjcl.codec.hex.fromBits(bitArray);
+
+        if (!(this.password === hash)) {
+            return "Incorrect password";
+        }
+        return null;
+
+    }
+
     toggleTwoFA(callback,twofa) {
         if (this.twofa && twofa) {
             return callback(`2FA is already activated`)
@@ -304,3 +346,6 @@ export class User {
     //     }
     // }
 }
+
+moduke.exports = {UserTable : new UserTable(),
+                  User : User};
