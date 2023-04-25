@@ -1,187 +1,187 @@
-CREATE TABLE Participants (
-    ID int NOT NULL AUTO_INCREMENT,
-    CONSTRAINT PK_Participants PRIMARY KEY (ID)
+CREATE TABLE participants (
+    gid int NOT NULL AUTO_INCREMENT,
+    CONSTRAINT pk_participants PRIMARY KEY (gid)
 );
 
-CREATE TABLE Users (
-    ID int NOT NULL,
-    Username varchar(63) NOT NULL UNIQUE,
-    DisplayName varchar(63) NOT NULL,
-    Email varchar(255) NOT NULL UNIQUE,
-    Password varchar(255) NOT NULL,
-    Discord varchar(63),
-    Twitter varchar(63),
-    TwoFA varchar(15),
-    CONSTRAINT PK_Users PRIMARY KEY (ID),
-    CONSTRAINT FK_Users FOREIGN KEY (ID) REFERENCES Participants(ID)
+CREATE TABLE users (
+    gid int NOT NULL,
+    username varchar(63) NOT NULL UNIQUE,
+    displayname varchar(63) NOT NULL,
+    email varchar(255) NOT NULL UNIQUE,
+    password varchar(255) NOT NULL,
+    discord varchar(63),
+    twitter varchar(63),
+    twofa varchar(15),
+    CONSTRAINT pk_users PRIMARY KEY (gid),
+    CONSTRAINT fk_users FOREIGN KEY (gid) REFERENCES participants(gid)
 );
 
-CREATE TABLE Teams (
-    ID int NOT NULL,
-    Name varchar(63) NOT NULL,
-    OwnerID int NOT NULL,
-    Twitter varchar(63),
-    CONSTRAINT PK_Teams PRIMARY KEY (ID),
-    CONSTRAINT FK_Teams FOREIGN KEY (ID) REFERENCES Participants(ID),
-    CONSTRAINT FK_TeamOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID)
+CREATE TABLE teams (
+    gid int NOT NULL,
+    name varchar(63) NOT NULL,
+    owner_gid int NOT NULL,
+    twitter varchar(63),
+    CONSTRAINT pk_teams PRIMARY KEY (gid),
+    CONSTRAINT fk_teams FOREIGN KEY (gid) REFERENCES participants(gid),
+    CONSTRAINT fk_team_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
 );
 
-CREATE TABLE Organisers (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(63) NOT NULL,
-    Discord varchar(63),
-    Twitter varchar(63),
-    OwnerID int NOT NULL,
-    CONSTRAINT PK_Orgs PRIMARY KEY (ID),
-    CONSTRAINT FK_OrgOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID)
+CREATE TABLE organisers (
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(63) NOT NULL,
+    discord varchar(63),
+    twitter varchar(63),
+    owner_gid int NOT NULL,
+    CONSTRAINT pk_orgs PRIMARY KEY (gid),
+    CONSTRAINT fk_org_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
 );
 
-CREATE TABLE OrgMembers (
-    OrgID int NOT NULL,
-    MemberID int NOT NULL,
-    CONSTRAINT PK_OrgMembers PRIMARY KEY (OrgID, MemberID),
-    CONSTRAINT FK_OMOrg FOREIGN KEY (OrgID) REFERENCES Organisers(ID),
-    CONSTRAINT FK_OMMember FOREIGN KEY (MemberID) REFERENCES Users(ID)
+CREATE TABLE org_members (
+    org_gid int NOT NULL,
+    member_gid int NOT NULL,
+    CONSTRAINT pk_org_members PRIMARY KEY (org_gid, member_gid),
+    CONSTRAINT fk_org_members_org FOREIGN KEY (org_gid) REFERENCES organisers(gid),
+    CONSTRAINT fk_org_members_member FOREIGN KEY (member_gid) REFERENCES users(gid)
 );
 
-CREATE TABLE Titles (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    TeamSize int NOT NULL,
-    CONSTRAINT PK_Titles PRIMARY KEY (ID)
+CREATE TABLE titles (
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    team_size int NOT NULL,
+    CONSTRAINT pk_titles PRIMARY KEY (gid)
 );
 
-CREATE TABLE GameModes (
-    TitleID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    Description varchar(1023),
-    CONSTRAINT PK_GameModes PRIMARY KEY (ID),
-    CONSTRAINT FK_GameModeTitle FOREIGN KEY (TitleID) REFERENCES Titles(ID)
+CREATE TABLE game_modes (
+    title_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    description varchar(1023),
+    CONSTRAINT pk_game_modes PRIMARY KEY (gid),
+    CONSTRAINT fk_game_modes_title FOREIGN KEY (title_gid) REFERENCES titles(gid)
 );
 
-CREATE TABLE Maps (
-    TitleID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    CONSTRAINT PK_Maps PRIMARY KEY (ID),
-    CONSTRAINT FK_MapTitle FOREIGN KEY (TitleID) REFERENCES Titles(ID)
+CREATE TABLE maps (
+    title_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    CONSTRAINT pk_maps PRIMARY KEY (gid),
+    CONSTRAINT fk_maps_title FOREIGN KEY (title_gid) REFERENCES titles(gid)
 );
 
-CREATE TABLE Events (
-    ID int NOT NULL AUTO_INCREMENT,
-    OwnerID int NOT NULL,
-    OrgID int,
-    Name varchar(255),
-    CONSTRAINT PK_Events PRIMARY KEY (ID),
-    CONSTRAINT FK_EventOwner FOREIGN KEY (OwnerID) REFERENCES Users(ID),
-    CONSTRAINT FK_EventOrg FOREIGN KEY (OrgID) REFERENCES Organisers(ID)
+CREATE TABLE events (
+    gid int NOT NULL AUTO_INCREMENT,
+    owner_gid int NOT NULL,
+    org_gid int,
+    name varchar(255),
+    CONSTRAINT pk_events PRIMARY KEY (gid),
+    CONSTRAINT fk_events_owner FOREIGN KEY (owner_gid) REFERENCES users(gid),
+    CONSTRAINT fk_events_org FOREIGN KEY (org_gid) REFERENCES organisers(gid)
 );
 
-CREATE TABLE EventsAdmins (
-    EventID int NOT NULL,
-    AdminID int NOT NULL,
-    CONSTRAINT PK_Admins PRIMARY KEY (EventID, AdminID),
-    CONSTRAINT FK_AdminEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
-    CONSTRAINT FK_AdminPerson FOREIGN KEY (AdminID) REFERENCES Users(ID)
+CREATE TABLE event_admins (
+    event_gid int NOT NULL,
+    admin_gid int NOT NULL,
+    CONSTRAINT pk_admins PRIMARY KEY (event_gid, admin_gid),
+    CONSTRAINT fk_admins_event FOREIGN KEY (event_gid) REFERENCES events(gid),
+    CONSTRAINT fk_admins_Person FOREIGN KEY (Admin_gid) REFERENCES users(gid)
 );
 
-CREATE TABLE Tournaments (
-    EventID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    TitleID int NOT NULL,
-    CONSTRAINT PK_Tournaments PRIMARY KEY (ID),
-    CONSTRAINT FK_TournamentEvent FOREIGN KEY (EventID) REFERENCES Events(ID),
-    CONSTRAINT FK_TournamentTitle FOREIGN KEY (TitleID) REFERENCES Titles(ID)
+CREATE TABLE tournaments (
+    event_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    title_gid int NOT NULL,
+    CONSTRAINT pk_tournaments PRIMARY KEY (gid),
+    CONSTRAINT fk_tournaments_event FOREIGN KEY (event_gid) REFERENCES events(gid),
+    CONSTRAINT fk_tournaments_title FOREIGN KEY (title_gid) REFERENCES titles(gid)
 );
 
-CREATE TABLE StageFormats (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    PairingFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_StageFormats PRIMARY KEY (ID)
+CREATE TABLE stage_formats (
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    pairing_fxn varchar(255),
+    scoring_fxn varchar(255),
+    CONSTRAINT pk_stage_formats PRIMARY KEY (gid)
 );
 
-CREATE TABLE Stages (
-    TournamentID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    FormatID int NOT NULL,
-    CONSTRAINT PK_Stages PRIMARY KEY (ID),
-    CONSTRAINT FK_StageTournament FOREIGN KEY (TournamentID) REFERENCES Tournaments(ID),
-    CONSTRAINT FK_StageFormat FOREIGN KEY (FormatID) REFERENCES StageFormats(ID)
+CREATE TABLE stages (
+    tournament_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    format_gid int NOT NULL,
+    CONSTRAINT pk_stages PRIMARY KEY (gid),
+    CONSTRAINT fk_stages_tournament FOREIGN KEY (tournament_gid) REFERENCES tournaments(gid),
+    CONSTRAINT fk_stages_format FOREIGN KEY (Format_gid) REFERENCES stage_formats(gid)
 );
 
-CREATE TABLE StageProgressions (
-    StageID int NOT NULL,
-    NextStageID int NOT NULL,
-    Priority int NOT NULL,
-    ProgressionCount int DEFAULT 1 NOT NULL,
-    CONSTRAINT PK_StageProgressions PRIMARY KEY (StageID, Priority),
-    CONSTRAINT FK_SPStage FOREIGN KEY (StageID) REFERENCES Stages(ID),
-    CONSTRAINT FK_SPNextStage FOREIGN KEY (NextStageID) REFERENCES Stages(ID)
+CREATE TABLE stage_progressions (
+    stage_gid int NOT NULL,
+    next_stage_gid int NOT NULL,
+    priority int NOT NULL,
+    progression_count int DEFAULT 1 NOT NULL,
+    CONSTRAINT pk_stage_progressions PRIMARY KEY (stage_gid, priority),
+    CONSTRAINT fk_stage_progressions_stage FOREIGN KEY (stage_gid) REFERENCES stages(gid),
+    CONSTRAINT fk_stage_progressions_next_stage FOREIGN KEY (nextstage_gid) REFERENCES stages(gid)
 );
 
-CREATE TABLE MatchFormats (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    SetCreationFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
+CREATE TABLE match_formats (
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    set_creation_fxn varchar(255),
+    scoring_fxn varchar(255),
+    CONSTRAINT pk_match_formats PRIMARY KEY (gid)
 );
 
-CREATE TABLE Matches (
-    StageID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    FormatID int NOT NULL,
-    CONSTRAINT PK_Matches PRIMARY KEY (ID),
-    CONSTRAINT FK_MatchStage FOREIGN KEY (StageID) REFERENCES Stages(ID),
-    CONSTRAINT FK_MatchFormat FOREIGN KEY (FormatID) REFERENCES MatchFormats(ID)
+CREATE TABLE matches (
+    stage_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    format_gid int NOT NULL,
+    CONSTRAINT pk_matches PRIMARY KEY (gid),
+    CONSTRAINT fk_matches_stage FOREIGN KEY (stage_gid) REFERENCES stages(gid),
+    CONSTRAINT fk_matches_format FOREIGN KEY (Format_gid) REFERENCES match_formats(gid)
 );
 
-CREATE TABLE MatchProgressions (
-    MatchID int NOT NULL,
-    NextMatchID int NOT NULL,
-    Priority int NOT NULL,
-    ProgressionCount int DEFAULT 1 NOT NULL,
-    CONSTRAINT PK_MatchProgressions PRIMARY KEY (MatchID, Priority),
-    CONSTRAINT FK_MPMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
-    CONSTRAINT FK_MPNextMatch FOREIGN KEY (NextMatchID) REFERENCES Matches(ID)
+CREATE TABLE match_progressions (
+    match_gid int NOT NULL,
+    next_match_gid int NOT NULL,
+    priority int NOT NULL,
+    progression_count int DEFAULT 1 NOT NULL,
+    CONSTRAINT pk_match_progressions PRIMARY KEY (match_gid, priority),
+    CONSTRAINT fk_match_progressions_match FOREIGN KEY (match_gid) REFERENCES matches(gid),
+    CONSTRAINT fk_match_progressions_Nextmatch FOREIGN KEY (next_match_gid) REFERENCES matches(gid)
 );
 
-CREATE TABLE SetFormats (
-    ID int NOT NULL AUTO_INCREMENT,
-    Name varchar(255),
-    GameCreationFxn varchar(255),
-    ScoringFxn varchar(255),
-    CONSTRAINT PK_MatchFormats PRIMARY KEY (ID)
+CREATE TABLE set_formats (
+    gid int NOT NULL AUTO_INCREMENT,
+    name varchar(255),
+    game_creation_fxn varchar(255),
+    scoring_fxn varchar(255),
+    CONSTRAINT pk_set_formats PRIMARY KEY (gid)
 );
 
-CREATE TABLE Sets (
-    MatchID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    FormatID int NOT NULL,
-    CONSTRAINT PK_Sets PRIMARY KEY (ID),
-    CONSTRAINT FK_SetMatch FOREIGN KEY (MatchID) REFERENCES Matches(ID),
-    CONSTRAINT FK_SetFormat FOREIGN KEY (FormatID) REFERENCES SetFormats(ID)
+CREATE TABLE sets (
+    match_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    format_gid int NOT NULL,
+    CONSTRAINT pk_sets PRIMARY KEY (gid),
+    CONSTRAINT fk_sets_match FOREIGN KEY (match_gid) REFERENCES matches(gid),
+    CONSTRAINT fk_sets_format FOREIGN KEY (Format_gid) REFERENCES set_formats(gid)
 );
 
-CREATE TABLE Games (
-    SetID int NOT NULL,
-    ID int NOT NULL AUTO_INCREMENT,
-    GameModeID int NOT NULL,
-    MapID int NOT NULL,
-    CONSTRAINT PK_Games PRIMARY KEY (ID),
-    CONSTRAINT FK_GameSet FOREIGN KEY (SetID) REFERENCES Sets(ID),
-    CONSTRAINT FK_GameMode FOREIGN KEY (GameModeID) REFERENCES GameModes(ID),
-    CONSTRAINT FK_GameMap FOREIGN KEY (MapID) REFERENCES Maps(ID)
+CREATE TABLE games (
+    set_gid int NOT NULL,
+    gid int NOT NULL AUTO_INCREMENT,
+    gamemode_gid int NOT NULL,
+    map_gid int NOT NULL,
+    CONSTRAINT pk_games PRIMARY KEY (gid),
+    CONSTRAINT fk_games_set FOREIGN KEY (set_gid) REFERENCES sets(gid),
+    CONSTRAINT fk_games_mode FOREIGN KEY (gamemode_gid) REFERENCES game_modes(gid),
+    CONSTRAINT fk_games_map FOREIGN KEY (map_gid) REFERENCES maps(gid)
 );
 
-CREATE TABLE GameScores (
-    GameID int NOT NULL,
-    ParticipantID int NOT NULL,
-    Score int NOT NULL DEFAULT 0,
-    CONSTRAINT PK_GScores PRIMARY KEY (GameID, ParticipantID),
-    CONSTRAINT FK_GSGame FOREIGN KEY (GameID) REFERENCES Games(ID),
-    CONSTRAINT FK_GSParticipant FOREIGN KEY (ParticipantID) REFERENCES Participants(ID)
+CREATE TABLE game_scores (
+    game_gid int NOT NULL,
+    participant_gid int NOT NULL,
+    score int NOT NULL DEFAULT 0,
+    CONSTRAINT pk_game_scores PRIMARY KEY (game_gid, participant_gid),
+    CONSTRAINT fk_game_scores_game FOREIGN KEY (game_gid) REFERENCES games(gid),
+    CONSTRAINT fk_game_scores_participant FOREIGN KEY (participant_gid) REFERENCES participants(gid)
 );

@@ -1,21 +1,22 @@
-const sjcl = require('sjcl');
-const db = require('../db/dbconn.js');
+import sjcl = require('sjcl');
+import { db } from '../db/dbconn.js';
+import { RowDataPacket } from "mysql2";
 
 /*
 Reference: https://stackoverflow.com/a/27612338
 Published: 12/23/2014 - https://stackoverflow.com/users/4386702/halbgut
 Retrieved: 12/30/2022
 */
-function createRandomString (callback, length) {
+function createRandomString (length : number) : Promise<String> {
     var randomBase64String = '',
-    checkReadyness;
+    checkReadyness : NodeJS.Timer;
   
     checkReadyness = setInterval( function () {
         console.log(length);
         if(sjcl.random.isReady(10)) {
             while(randomBase64String.length < length) {
-                randomInt = sjcl.random.randomWords(1, 10)[0];
-                randomBase64String += randomInt.toString("base64");
+                var randomInt : number = sjcl.random.randomWords(1, 10)[0];
+                randomBase64String += randomInt.toString(64);
             }
             randomBase64String = randomBase64String.substring(0, length);
             callback(randomBase64String);
@@ -24,12 +25,12 @@ function createRandomString (callback, length) {
     }, 1);
 }
 
-function isPasswordSecure(pswd) {
+function isPasswordSecure(pswd : string) {
     var err = "";
     if (pswd.length < 10) {
         err += "Password is too short\n";
     }
-    if (!hasNumber(pswd)) {
+    if (!/0-9/.test(pswd)) {
         err += "Password does not contain any numbers\n";
     }
     if (!/A-Z/.test(pswd)) {
@@ -45,72 +46,72 @@ function isPasswordSecure(pswd) {
     }
 }
 
-const UserTable = class {
+export const UserTable = class {
 
-    getUserById(callback, id) {
-        new User(function (obj, err) {
-            callback(obj, err);
-        }, id);
+    public static async getUserById(id : number) : Promise<User> {
+
+        var sql = `SELECT * FROM users WHERE id = ?;`;
+        var u = new User();
+        var uPromise : Promise<User> = new Promise((resolve, reject) => {
+            db.then( db => db.query<User[]>(sql, [id]))
+                .then( result => {
+
+                    var rows = result[0];
+
+                    if (rows.length === 1) {
+
+                        u.ID=id;
+                        u.username=rows[0].username;
+                        u.displayname=rows[0].displayname;
+                        u.email=rows[0].email;
+                        u.password=rows[0].password;
+                        if (rows[0].discord) {u.discord=rows[0].discord}
+                        if (rows[0].twitter) {u.twitter=rows[0].twitter}
+                        if (rows[0].twofa) {u.twofa=rows[0].twofa}
+
+                        resolve(u);
+                    } else if (rows.length > 1) {
+                        reject(new Error("Multiple users share this ID"))
+                    }
+                })
+                .catch( error => {
+                    reject(error);
+                });
+
+        });
+        return uPromise;  
     }
 
-    getUserByUsername(callback, username) {
-        new User(function (obj, err) {
-            callback(obj, err);
-        }, null, username);
+    public static async getUserByName(username : string) : Promise<User> {
+
+        var sql = `SELECT * FROM users WHERE username = ?;`;
+        var u = new User();
+        var uPromise : Promise<User> = new Promise((resolve, reject) => {
+            db.then( db => db.query<User[]>(sql, [username]))
+                .then( result => {
+
+                    var rows = result[0];
+
+                    u.id=rows[0].id;
+                    u.username=username;
+                    u.displayname=rows[0].displayname;
+                    u.email=rows[0].email;
+                    u.password=rows[0].password;
+                    if (rows[0].discord) {u.discord=rows[0].discord}
+                    if (rows[0].twitter) {u.twitter=rows[0].twitter}
+                    if (rows[0].twofa) {u.twofa=rows[0].twofa}
+
+                    resolve(u);
+                })
+                .catch( error => {
+                    reject(error);
+                });
+
+        });
+        return uPromise;  
     }
 
-}
-
-class User {
-
-    id; name; email; password; discord; twitter; twofa;
-
-    constructor(callback, id=null, username=null, displayname=null, email=null, password=null, discord=null, twitter=null, twofa=false) {
-        var sql;
-        
-        if (id) {
-            var sql = `SELECT * FROM Users WHERE ID = ${id};`;
-
-            db.query(sql, function(error, result, fields) {
-
-                if (error) {
-                    return callback(null,`${error.sqlMessage}`);
-                }
-    
-                this.id=id;
-                this.username=result[0].Username;
-                this.displayname=result[0].DisplayName;
-                this.email=result[0].Email;
-                this.password=result[0].Password;
-                if (result[0].Discord) {this.discord=result[0].Discord}
-                if (result[0].Twitter) {this.twitter=result[0].Twitter}
-                if (result[0].TwoFA) {this.twofa=result[0].TwoFA}
-
-                return callback(this, null);
-            });
-        }
-
-        if (username) {
-            var sql = `SELECT * FROM Users WHERE Username = ${username};`;
-
-            db.query(sql, function(error, result, fields) {
-
-                if (error) {
-                    return callback(null,`${error.sqlMessage}`);
-                }
-    
-                this.id=result[0].ID;
-                this.username=username;
-                this.displayname=result[0].DisplayName;
-                this.email=result[0].Email;
-                this.password=result[0].Password;
-                if (result[0].Discord) {this.discord=result[0].Discord}
-                if (result[0].Twitter) {this.twitter=result[0].Twitter}
-                if (result[0].TwoFA) {this.twofa=result[0].TwoFA}
-
-                return callback(this, null);
-            });
-        }
+    public static async createUser(username : string, displayname : string, email : string, password : string, discord : string, twitter : string, twofa : string) : Promise<User> {
 
         var passwordStatus = isPasswordSecure(password);
 
@@ -186,7 +187,35 @@ class User {
             if(twitter) { this.twitter=twitter }
 
             return callback(this, null);
-        });
+        });   
+    }
+
+}
+
+export interface User extends RowDataPacket {
+    id: number;
+    username: string;
+    displayname: string;
+    email: string;
+    password: string;
+    discord: string;
+    twitter: string;
+    twofa: string;
+}
+
+export class User {
+
+    constructor() {
+
+        this.id=0;
+        this.username="";
+        this.displayname="";
+        this.email="";
+        this.password="";
+        this.discord="";
+        this.twitter="";
+        this.twofa="";
+
     }
 
     toString() {
@@ -346,6 +375,3 @@ class User {
     //     }
     // }
 }
-
-moduke.exports = {UserTable : new UserTable(),
-                  User : User};
