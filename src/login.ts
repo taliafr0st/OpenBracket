@@ -13,7 +13,7 @@ app.use(session({
 
 declare module "express-session" {
 	interface SessionData {
-	  userid: number;
+	    userid: number;
 	}
 }
 
@@ -36,8 +36,9 @@ app.post('/auth', (request : express.Request, response : express.Response) => {
 			if (pswdChk) {
 				response.send(pswdChk)
 			}
-			request.session.loggedIn = true;
-			request.session.user = u;
+
+			request.session.userid = u.id;
+			request.session.cookie = {secure : true, originalMaxAge : 14400};
 
 			response.redirect('/dashboard');
 				

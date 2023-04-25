@@ -1,6 +1,6 @@
 import sjcl = require('sjcl');
 import { db } from '../db/dbconn.js';
-import { RowDataPacket } from "mysql2";
+import { OkPacket, RowDataPacket } from "mysql2";
 
 /*
 Reference: https://stackoverflow.com/a/27612338
@@ -8,42 +8,53 @@ Published: 12/23/2014 - https://stackoverflow.com/users/4386702/halbgut
 Retrieved: 12/30/2022
 */
 function createRandomString (length : number) : Promise<String> {
-    var randomBase64String = '',
-    checkReadyness : NodeJS.Timer;
-  
-    checkReadyness = setInterval( function () {
-        console.log(length);
-        if(sjcl.random.isReady(10)) {
-            while(randomBase64String.length < length) {
-                var randomInt : number = sjcl.random.randomWords(1, 10)[0];
-                randomBase64String += randomInt.toString(64);
+    var randomBase64String = '';
+    var checkReadyness : NodeJS.Timer;
+    var c : number = 0;
+
+    var stringPromise : Promise<String> = new Promise((resolve, reject) => {
+        checkReadyness = setInterval( function () {
+            console.log(length);
+            c++;
+            if(sjcl.random.isReady(10)) {
+                while(randomBase64String.length < length) {
+                    var randomInt : number = sjcl.random.randomWords(1, 10)[0];
+                    randomBase64String += randomInt.toString(64);
+                }
+                randomBase64String = randomBase64String.substring(0, length);
+                resolve(randomBase64String);
+                clearInterval(checkReadyness);
+            } else if (c > 50) {
+                clearInterval(checkReadyness);
             }
-            randomBase64String = randomBase64String.substring(0, length);
-            callback(randomBase64String);
-            clearInterval(checkReadyness);
-        }
-    }, 1);
+        }, 1)
+        reject(new Error("Could not generate a random string"));
+    });
+    return stringPromise;
 }
 
-function isPasswordSecure(pswd : string) {
-    var err = "";
+function isPasswordSecure(pswd : string) : Promise<number> {
+    var err : Promise<number> = new Promise((resolve, reject) => {
+    var errmsg = "";
     if (pswd.length < 10) {
-        err += "Password is too short\n";
+        errmsg += "Password is too short\n";
     }
     if (!/0-9/.test(pswd)) {
-        err += "Password does not contain any numbers\n";
+        errmsg += "Password does not contain any numbers\n";
     }
     if (!/A-Z/.test(pswd)) {
-        err += "Password does not contain any upper case letters\n"
+        errmsg += "Password does not contain any upper case letters\n"
     }
     if (!/a-z/.test(pswd)) {
-        err += "Password does not contain any lower case letters\n"
+        errmsg += "Password does not contain any lower case letters\n"
     }
-    if (!err) {
-        return null;
+    if (!errmsg) {
+        resolve(0);
     } else {
-        return err.substring(0, length-1);
+        reject(new Error(errmsg.substring(0, errmsg.length-1)));
     }
+    });
+    return err;
 }
 
 export const UserTable = class {
@@ -51,8 +62,8 @@ export const UserTable = class {
     public static async getUserById(id : number) : Promise<User> {
 
         var sql = `SELECT * FROM users WHERE id = ?;`;
-        var u = new User();
         var uPromise : Promise<User> = new Promise((resolve, reject) => {
+            var u = new User();
             db.then( db => db.query<User[]>(sql, [id]))
                 .then( result => {
 
@@ -85,8 +96,8 @@ export const UserTable = class {
     public static async getUserByName(username : string) : Promise<User> {
 
         var sql = `SELECT * FROM users WHERE username = ?;`;
-        var u = new User();
         var uPromise : Promise<User> = new Promise((resolve, reject) => {
+            var u = new User();
             db.then( db => db.query<User[]>(sql, [username]))
                 .then( result => {
 
@@ -113,81 +124,71 @@ export const UserTable = class {
 
     public static async createUser(username : string, displayname : string, email : string, password : string, discord : string, twitter : string, twofa : string) : Promise<User> {
 
-        var passwordStatus = isPasswordSecure(password);
+        var sql : string;
 
-        if (passwordStatus) {
-            return callback(null, passwordStatus);
-        }
+        var uPromise : Promise<User> = new Promise(async (resolve, reject) => {
+            var u = new User();
+            var passwordStatus = isPasswordSecure(password);
 
-        const myBitArray = sjcl.hash.sha256.hash(password);
-        const myHash = sjcl.codec.hex.fromBits(myBitArray);
-
-        var sqlfields = `INSERT INTO Users (ID, Name, Email, Password`
-        var sqlvalues = `VALUES ((SELECT LAST_INSERT_ID()), ${db.escape(name)}, ${db.escape(email)}, ${db.escape(myHash)}`
-
-        if(discord) {
-            sqlfields += `, Discord`;
-            sqlvalues += `, ${db.escape(discord)}`;
-        }
-        if(twitter) {
-            sqlfields += `, Twitter`;
-            sqlvalues += `, ${db.escape(twitter)}`;
-        }
-
-        if(twofa) {
-            createRandomString(function(response) {
-
-                sqlfields += `, TwoFA) `;
-                sqlvalues += `, ${db.escape(response)});`;
-
-                sql = `START TRANSACTION; INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues+` COMMIT;`
-
-                db.query(sql, function(error, result, fields) {
-
-                    if (error) {
-                        return callback(null,`${error.sqlMessage}`);
-                    }
-
-                    this.id=result.insertId;
-
-                    this.username=username;
-                    this.displayname=displayname;
-                    this.email=email;
-
-                    this.password=myHash;
-                    if(discord) { this.discord=discord }
-                    if(twitter) { this.twitter=twitter }
-                    
-                    this.twofa=response;
-
-                    return callback(this, null);
-                });
-            }, 15);
-        }
-
-        sqlfields += `) `;
-        sqlvalues += `);`;
-
-        sql = `START TRANSACTION; INSERT INTO Participants () VALUES (); `+sqlfields+sqlvalues+` COMMIT;`
-
-        db.query(sql, function(error, result, fields) {
-
-            if (error) {
-                return callback(null,`${error.sqlMessage}`);
+            if (passwordStatus) {
+                reject(passwordStatus);
             }
 
-            this.id=tempId;
+            const myBitArray = sjcl.hash.sha256.hash(password);
+            const myHash = sjcl.codec.hex.fromBits(myBitArray);
 
-            this.username=username;
-            this.displayname=displayname;
-            this.email=email;
+            var sqlfields = `INSERT INTO users (id, name, email, password`
+            var sqlvalues = `VALUES ((SELECT LAST_INSERT_ID()), ?, ?, ?`
+            var attrs : string[] = [username, email, myHash]
+            
 
-            this.password=myHash;
-            if(discord) { this.discord=discord }
-            if(twitter) { this.twitter=twitter }
+            if(discord) {
+                sqlfields += `, discord`;
+                sqlvalues += `, ?`;
+                attrs.push(discord)
+            }
+            if(twitter) {
+                sqlfields += `, twitter`;
+                sqlvalues += `, ?`;
+                attrs.push(twitter)
+            }
 
-            return callback(this, null);
-        });   
+            if(twofa) {
+                await createRandomString(15).then( twofacode => {
+
+                    sqlfields += `, twofa) `;
+                    sqlvalues += `, ?);`;
+
+                    attrs.push(twofa)
+
+                });
+            } else {
+                sqlfields += `) `;
+                sqlvalues += `);`;
+            }
+
+            sql = `START TRANSACTION; INSERT INTO participants () VALUES (); `+sqlfields+sqlvalues+` COMMIT;`
+
+            db.then( db => {db.query<OkPacket>(sql, attrs)
+                .then( result => {
+                    u.id=result[0].insertId;
+
+                    u.username=username;
+                    u.displayname=displayname;
+                    u.email=email;
+    
+                    u.password=myHash;
+                    if(discord) { u.discord=discord }
+                    if(twitter) { u.twitter=twitter }
+                    if(twofa) { u.twofa=attrs.pop() }
+                    resolve(u)
+                }) 
+                .catch( error => {
+                    reject(error)
+                });
+            });
+        });
+    return uPromise;
     }
 
 }
@@ -198,9 +199,9 @@ export interface User extends RowDataPacket {
     displayname: string;
     email: string;
     password: string;
-    discord: string;
-    twitter: string;
-    twofa: string;
+    discord: string | undefined;
+    twitter: string | undefined;
+    twofa: string | undefined;
 }
 
 export class User {
@@ -212,9 +213,9 @@ export class User {
         this.displayname="";
         this.email="";
         this.password="";
-        this.discord="";
-        this.twitter="";
-        this.twofa="";
+        // this.discord="";
+        // this.twitter="";
+        // this.twofa="";
 
     }
 
@@ -222,78 +223,97 @@ export class User {
         return `"${this.name}" (id: ${this.id})`;
     }
 
-    updateInfo(callback, name=null, email=null, discord=null, twitter=null) {
+    updateInfo(name : string, email : string, discord : string, twitter : string) : Promise<number> {
         
-        var sql = `UPDATE Users SET `
+        var err : Promise<number> = new Promise((resolve, reject) => {
+            var sql = `UPDATE users SET `;
+            var attrs : string[] = [];
 
-        if(name) {sql += `Name=${db.escape(name)}, `}
-        if(email) {sql += `Email=${db.escape(email)}, `}
-        if(discord) {sql += `Discord=${db.escape(discord)}, `}
-        if(twitter) {sql += `Twitter=${db.escape(twitter)}, `}
-
-        if (sql===`UPDATE Users SET `) {
-            return callback(null);
-        }
-
-        sql = sql.substring(0,length(sql)-2)+` WHERE ID=${this.id});`;
-
-        db.query(sql, function(error, result, fields) {
-
-            if (error) {
-                return callback(`${error.sqlMessage}`);
+            if(name) {
+                sql += `Name=?, `
+                attrs.push(name)
             }
-            if (name) {this.name=name}
-            if (email) {this.email=email}
-            if (discord) {this.discord=discord}
-            if (twitter) {this.twitter=twitter}
-            return callback(null);
+            if(email) {
+                sql += `Email=?, `
+                attrs.push(email)
+            }
+            if(discord) {
+                sql += `Discord=?, `
+                attrs.push(discord)
+            }
+            if(twitter) {
+                sql += `Twitter=?, `
+                attrs.push(twitter)
+            }
 
+            if (sql===`UPDATE Users SET `) {
+                return new Error("No information to update");
+            }
+
+            sql = sql.substring(0,sql.length-1)+`WHERE ID=?);`;
+            attrs.push(this.id.toString());
+
+            db.then(db => {db.query(sql, attrs)
+                .then(result => {
+                    if (name) {this.displayname=name}
+                    if (email) {this.email=email}
+                    if (discord) {this.discord=discord}
+                    if (twitter) {this.twitter=twitter}
+                    resolve(0);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+            });
         });
+        return err;
     }
 
-    changePassword(callback, oldpassword, newpassword, confirmpassword) {
-        if (oldpassword === newpassword) {
-            return callback(`Old and new passwords are the same`);
-        } else if (!(newpassword === confirmpassword)) {
-            return callback(`New passwords are different`);
-        }
+    changePassword(oldpassword : string, newpassword : string, confirmpassword : string) : Promise<number> {
 
-        const oldBitArray = sjcl.hash.sha256.hash(oldpassword);
-        const oldHash = sjcl.codec.hex.fromBits(oldBitArray);
-
-        if (!(oldHash === this.password)) {
-            return callback(`Incorrect password`);
-        }
-
-        var passwordStatus = isPasswordSecure(password);
-
-        if (passwordStatus) {
-            return callback(passwordStatus);
-        }
-
-        const newBitArray = sjcl.hash.sha256.hash(newpassword);
-        const newHash = sjcl.codec.hex.fromBits(newBitArray);
-
-        var sql = `Update Users SET Password=${newHash} WHERE ID=${this.id};`
-
-        db.query(sql, function(error, result, fields) {
-
-            if (error) {
-                return callback(`${error.sqlMessage}`);
+        var err : Promise<number> = new Promise(async (resolve, reject) => {
+            if (oldpassword === newpassword) {
+                reject(new Error(`Old and new passwords are the same`));
+            } else if (!(newpassword === confirmpassword)) {
+                reject(new Error(`New passwords are different`));
             }
-            this.password = newHash;
-            return callback(null);
 
+            const oldBitArray = sjcl.hash.sha256.hash(oldpassword);
+            const oldHash = sjcl.codec.hex.fromBits(oldBitArray);
+
+            if (!(oldHash === this.password)) {
+                reject(new Error(`Incorrect password`));
+            }
+
+            await isPasswordSecure(newpassword).catch(err => {
+                reject(err);
+            })
+
+            const newBitArray = sjcl.hash.sha256.hash(newpassword);
+            const newHash = sjcl.codec.hex.fromBits(newBitArray);
+
+            var sql = `Update Users SET Password=${newHash} WHERE ID=${this.id};`
+
+            db.then( db => {db.query(sql)
+                .then( result => {
+                    this.password = newHash;
+                    resolve(0);
+                })
+                .catch( err => {
+                    reject(err);
+                });
+            });
         });
+        return err
     }
 
-    comparePassword(password) {
+    comparePassword(password : string) {
 
         const bitArray = sjcl.hash.sha256.hash(password);
         const hash = sjcl.codec.hex.fromBits(bitArray);
 
         if (!(this.password === hash)) {
-            return "Incorrect password";
+            return new Error("Incorrect password");
         }
         return null;
 
