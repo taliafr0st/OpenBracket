@@ -1,7 +1,7 @@
 import express = require('express');
 import session = require('express-session');
 import path = require('path');
-import {User, UserTable} from './classes/user';
+import {UserTable} from './classes/user';
 
 const app = express();
 
