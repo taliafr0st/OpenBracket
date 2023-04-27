@@ -23,7 +23,7 @@ CREATE TABLE teams (
     twitter varchar(63),
     CONSTRAINT pk_teams PRIMARY KEY (gid),
     CONSTRAINT fk_teams FOREIGN KEY (gid) REFERENCES participants(gid),
-    CONSTRAINT fk_team_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
+    CONSTRAINT fk_teams_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
 );
 
 CREATE TABLE organisers (
@@ -33,7 +33,7 @@ CREATE TABLE organisers (
     twitter varchar(63),
     owner_gid int NOT NULL,
     CONSTRAINT pk_orgs PRIMARY KEY (gid),
-    CONSTRAINT fk_org_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
+    CONSTRAINT fk_orgs_owner FOREIGN KEY (owner_gid) REFERENCES users(gid)
 );
 
 CREATE TABLE org_members (
@@ -83,7 +83,7 @@ CREATE TABLE event_admins (
     admin_gid int NOT NULL,
     CONSTRAINT pk_admins PRIMARY KEY (event_gid, admin_gid),
     CONSTRAINT fk_admins_event FOREIGN KEY (event_gid) REFERENCES events(gid),
-    CONSTRAINT fk_admins_Person FOREIGN KEY (Admin_gid) REFERENCES users(gid)
+    CONSTRAINT fk_admins_person FOREIGN KEY (admin_gid) REFERENCES users(gid)
 );
 
 CREATE TABLE tournaments (
@@ -109,7 +109,7 @@ CREATE TABLE stages (
     format_gid int NOT NULL,
     CONSTRAINT pk_stages PRIMARY KEY (gid),
     CONSTRAINT fk_stages_tournament FOREIGN KEY (tournament_gid) REFERENCES tournaments(gid),
-    CONSTRAINT fk_stages_format FOREIGN KEY (Format_gid) REFERENCES stage_formats(gid)
+    CONSTRAINT fk_stages_format FOREIGN KEY (format_gid) REFERENCES stage_formats(gid)
 );
 
 CREATE TABLE stage_progressions (
@@ -136,7 +136,7 @@ CREATE TABLE matches (
     format_gid int NOT NULL,
     CONSTRAINT pk_matches PRIMARY KEY (gid),
     CONSTRAINT fk_matches_stage FOREIGN KEY (stage_gid) REFERENCES stages(gid),
-    CONSTRAINT fk_matches_format FOREIGN KEY (Format_gid) REFERENCES match_formats(gid)
+    CONSTRAINT fk_matches_format FOREIGN KEY (format_gid) REFERENCES match_formats(gid)
 );
 
 CREATE TABLE match_progressions (
@@ -146,7 +146,7 @@ CREATE TABLE match_progressions (
     progression_count int DEFAULT 1 NOT NULL,
     CONSTRAINT pk_match_progressions PRIMARY KEY (match_gid, priority),
     CONSTRAINT fk_match_progressions_match FOREIGN KEY (match_gid) REFERENCES matches(gid),
-    CONSTRAINT fk_match_progressions_Nextmatch FOREIGN KEY (next_match_gid) REFERENCES matches(gid)
+    CONSTRAINT fk_match_progressions_nextmatch FOREIGN KEY (next_match_gid) REFERENCES matches(gid)
 );
 
 CREATE TABLE set_formats (
@@ -163,7 +163,7 @@ CREATE TABLE sets (
     format_gid int NOT NULL,
     CONSTRAINT pk_sets PRIMARY KEY (gid),
     CONSTRAINT fk_sets_match FOREIGN KEY (match_gid) REFERENCES matches(gid),
-    CONSTRAINT fk_sets_format FOREIGN KEY (Format_gid) REFERENCES set_formats(gid)
+    CONSTRAINT fk_sets_format FOREIGN KEY (format_gid) REFERENCES set_formats(gid)
 );
 
 CREATE TABLE games (
